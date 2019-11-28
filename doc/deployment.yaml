@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tlh-deployment
+  namespace: tlh
+spec:
+  selector:
+    matchLabels:
+      app: tlh-server
+  template:
+    metadata:
+      labels:
+        app: tlh-server
+    spec:
+      containers:
+      - image: harbor.tlh.com/tlhhup/jks:<BUILD_NUMBER>
+        name: tlh
+        env:
+        - name: MYSQL_USER
+          valueFrom:
+           configMapKeyRef:
+            name: tlh-configmap
+            key: mysql.user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+           configMapKeyRef:
+            name: tlh-configmap
+            key: mysql.pwd
+        - name: MYSQL_URL
+          valueFrom:
+           configMapKeyRef:
+            name: tlh-configmap
+            key: mysql.url
+        ports:
+        - containerPort: 8089
+          name: tlh
+      imagePullSecrets:
+      - name: regcred

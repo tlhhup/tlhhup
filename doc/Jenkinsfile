@@ -1,0 +1,57 @@
+pipeline {
+  agent {
+    kubernetes {
+      defaultContainer 'jnlp'
+      yamlFile 'src/doc/kubernetesPod.yaml'
+    }
+  }
+
+  stages {
+    stage('Get a Maven project') {
+        steps{
+            container('maven') {
+                sh 'mvn -DskipTests=true clean package'
+            }
+        }
+    }
+    stage('Build Docker Image'){
+        steps{
+            container('docker'){
+                sh '''
+                    mkdir context
+                    cp target/tlhhup-1.0-SNAPSHOT.jar context
+                    cp doc/Dockerfile context
+                '''
+                sh 'docker build -t harbor.tlh.com/tlhhup/jks:${BUILD_NUMBER} context'
+            }
+        }
+    }
+    stage('Push Docker Image'){
+        steps{
+            container('docker'){
+                sh 'echo Push Docker Image'
+                withCredentials([usernamePassword(credentialsId: 'harbor', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+                    sh '''
+                        docker login harbor.tlh.com -u ${dockerHubUser} -p ${dockerHubPassword}
+                        docker push harbor.tlh.com/tlhhup/jks:${BUILD_NUMBER}
+                    '''
+                }
+            }
+        }
+    }
+    stage('Deploy'){
+        steps{
+            input "Does the staging environment look ok?"
+            container('kubectl'){
+                sh 'echo Deploy'
+                sh '''
+                    mkdir deploy
+                    cp doc/deployment.yaml deploy
+                '''
+                sh "sed -i 's/<BUILD_NUMBER>/${BUILD_NUMBER}/' deploy/deployment.yaml"
+                sh 'kubectl apply -f deploy/deployment.yaml -n tlh'
+            }
+        }
+    }
+  }
+}
