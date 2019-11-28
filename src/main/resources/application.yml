@@ -1,0 +1,25 @@
+logging:
+  level: debug
+spring:
+  datasource:
+    driver-class-name: org.gjt.mm.mysql.Driver
+    url: ${MYSQL_URL:jdbc:mysql:///tlh}
+    username: ${MYSQL_USER:admin}
+    password: ${MYSQL_PASSWORD:123456}
+    type: com.zaxxer.hikari.HikariDataSource
+  jpa:
+    generate-ddl: true
+    show-sql: true
+  freemarker:
+    charset: utf-8
+    cache: false
+    enabled: true
+shiro:
+  loginUrl: /login
+  successUrl: /sys/main
+  unauthorizedUrl: /login
+server:
+  port: 8089
+  context-path: /tlh
+
+
