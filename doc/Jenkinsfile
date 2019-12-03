@@ -7,13 +7,25 @@ pipeline {
   }
 
   stages {
-    stage('Get a Maven project') {
+    stage('Build && SonarQube analysis') {
         steps{
             container('maven') {
+				withSonarQubeEnv(credentialsId: 'sonar', installationName: 'sonar') {
+				  sh 'mvn -DskipTests=true clean compile sonar:sonar'
+				}
                 sh 'mvn -DskipTests=true clean package'
             }
         }
     }
+	stage("Quality Gate") {
+		steps {
+			timeout(time: 1, unit: 'HOURS') {
+				// Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+				// true = set pipeline to UNSTABLE, false = don't
+				waitForQualityGate abortPipeline: true
+			}
+		}
+	}
     stage('Build Docker Image'){
         steps{
             container('docker'){
