@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    k8s-app: kubernetes-dashboard
+  annotations:
+    kubernetes.io/ingress.class: "k8s-nginx-ingress" # 选择指定的ingress-controller
+    nginx.ingress.kubernetes.io/ssl-redirect: "true" # 强制重定向到https
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true" # 配置不在nginx进行https的解密，强制转发到server端进行处理，需要在ingress-controller的deployment启动参数添加enable-ssl-passthrough才生效
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+spec:
+  rules:
+  - host: dashboard.tlh.com
+    http:
+      paths:
+      - path: /
+        backend:
+          servicePort: 443
+          serviceName: kubernetes-dashboard
+  tls:
+  - hosts:
+    - dashboard.tlh.com
+    secretName: kubernetes-dashboard-certs
