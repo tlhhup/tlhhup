@@ -14,7 +14,7 @@
     </parent>
 
     <properties>
-        <shiro.version>1.4.0</shiro.version>
+        <shiro.version>1.7.1</shiro.version>
         <hikariCP.version>2.7.1</hikariCP.version>
     </properties>
 
